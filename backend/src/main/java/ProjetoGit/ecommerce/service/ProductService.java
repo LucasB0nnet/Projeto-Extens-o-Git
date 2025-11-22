@@ -24,4 +24,10 @@ public class ProductService {
         return product;
     }
 
+    public void create(Product product) {
+        productRepository.save(product);
+    }
+
+
+
 }
