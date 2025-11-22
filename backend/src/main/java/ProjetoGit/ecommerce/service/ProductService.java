@@ -28,6 +28,14 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    public void update(Product product) {
+        Product entity = productRepository.findById(product.getId()).orElse(null);
+        entity.setName(product.getName());
+        entity.setDescription(product.getDescription());
+        entity.setCategory(product.getCategory());
+        entity.setPrice(product.getPrice());
+        productRepository.save(entity);
+    }
 
 
 }
