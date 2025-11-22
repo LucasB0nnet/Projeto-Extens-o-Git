@@ -37,5 +37,10 @@ public class ProductService {
         productRepository.save(entity);
     }
 
+    public void delete(Product product) {
+        Product entity = productRepository.findById(product.getId()).orElse(null);
+        productRepository.delete(entity);
+    }
+
 
 }
