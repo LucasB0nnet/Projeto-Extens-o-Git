@@ -4,6 +4,8 @@ function App() {
   const [visible, setVisible] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [products] = useState([
     {
       id: 1,
@@ -73,6 +75,27 @@ function App() {
         )
       );
     }
+  };
+
+  const handleFinalizePurchase = () => {
+    if (cartItems.length === 0) {
+      alert("Seu carrinho está vazio!");
+      return;
+    }
+    setShowCheckout(true);
+  };
+
+  const handleConfirmOrder = () => {
+    setOrderPlaced(true);
+    setTimeout(() => {
+      alert(
+        `✅ Pedido realizado com sucesso!\n\nTotal: R$ ${totalPrice.toFixed(2)}\nItens: ${totalItems}\n\nObrigado pela compra!`
+      );
+      setCartItems([]);
+      setShowCheckout(false);
+      setOrderPlaced(false);
+      setShowCart(false);
+    }, 1000);
   };
 
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -394,6 +417,7 @@ function App() {
                   </span>
                 </div>
                 <button
+                  onClick={handleFinalizePurchase}
                   style={{
                     width: "100%",
                     padding: "0.8rem",
@@ -419,6 +443,189 @@ function App() {
                   💳 Finalizar Compra
                 </button>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Checkout */}
+      {showCheckout && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => !orderPlaced && setShowCheckout(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "16px",
+              padding: "2rem",
+              maxWidth: "500px",
+              width: "90%",
+              boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {orderPlaced ? (
+              <div style={{ animation: "pulse 1s infinite" }}>
+                <div
+                  style={{
+                    fontSize: "3rem",
+                    marginBottom: "1rem",
+                    animation: "bounce 1s infinite",
+                  }}
+                >
+                  ✅
+                </div>
+                <h2 style={{ color: "#333", marginBottom: "0.5rem" }}>
+                  Processando seu pedido...
+                </h2>
+                <p style={{ color: "#999" }}>Por favor aguarde</p>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ color: "#333", marginBottom: "1.5rem" }}>
+                  💳 Resumo do Pedido
+                </h2>
+
+                <div
+                  style={{
+                    background: "#f5f5f5",
+                    padding: "1.5rem",
+                    borderRadius: "8px",
+                    marginBottom: "1.5rem",
+                    textAlign: "left",
+                  }}
+                >
+                  <div
+                    style={{
+                      marginBottom: "1rem",
+                      paddingBottom: "1rem",
+                      borderBottom: "1px solid #ddd",
+                    }}
+                  >
+                    <p style={{ margin: "0.5rem 0", color: "#666" }}>
+                      <strong>Quantidade de itens:</strong> {totalItems}
+                    </p>
+                    <p style={{ margin: "0.5rem 0", color: "#666" }}>
+                      <strong>Subtotal:</strong> R$ {totalPrice.toFixed(2)}
+                    </p>
+                    <p style={{ margin: "0.5rem 0", color: "#666" }}>
+                      <strong>Frete:</strong> Grátis
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "1.3rem",
+                      fontWeight: "bold",
+                      color: "#764ba2",
+                    }}
+                  >
+                    <span>Total:</span>
+                    <span>R$ {totalPrice.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    background: "#f0f4ff",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    marginBottom: "1.5rem",
+                    color: "#333",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  <p style={{ margin: 0, marginBottom: "0.5rem" }}>
+                    📍 <strong>Endereço:</strong>
+                  </p>
+                  <p style={{ margin: 0, color: "#666" }}>
+                    Rua Principal, 123 - São Paulo, SP
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "1rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <button
+                    onClick={() => setShowCheckout(false)}
+                    style={{
+                      flex: 1,
+                      padding: "0.8rem",
+                      background: "#e0e0e0",
+                      color: "#333",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#d0d0d0";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "#e0e0e0";
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleConfirmOrder}
+                    style={{
+                      flex: 1,
+                      padding: "0.8rem",
+                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = "translateY(-2px)";
+                      e.target.style.boxShadow =
+                        "0 6px 20px rgba(102, 126, 234, 0.6)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = "translateY(0)";
+                      e.target.style.boxShadow = "none";
+                    }}
+                  >
+                    ✅ Confirmar Compra
+                  </button>
+                </div>
+
+                <p
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "#999",
+                    margin: 0,
+                  }}
+                >
+                  Você receberá um email de confirmação em breve
+                </p>
+              </>
             )}
           </div>
         </div>
