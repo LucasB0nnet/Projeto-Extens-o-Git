@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 
 function App() {
   const [visible, setVisible] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [products, setProducts] = useState([
+  const [cartItems, setCartItems] = useState([]);
+  const [showCart, setShowCart] = useState(false);
+  const [products] = useState([
     {
       id: 1,
       name: "Smartphone Pro",
@@ -33,7 +34,6 @@ function App() {
       image: "⌚",
     },
   ]);
-  const [quantities, setQuantities] = useState({});
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 300);
@@ -42,11 +42,44 @@ function App() {
   const handleAddToCart = (productId, quantity) => {
     const qty = parseInt(quantity) || 1;
     if (qty > 0) {
-      setCartCount(cartCount + qty);
-      setQuantities({ ...quantities, [productId]: 1 });
-      alert(`${qty} produto(s) adicionado(s) ao carrinho! Total de itens: ${cartCount + qty}`);
+      const product = products.find((p) => p.id === productId);
+      const existingItem = cartItems.find((item) => item.id === productId);
+
+      if (existingItem) {
+        setCartItems(
+          cartItems.map((item) =>
+            item.id === productId
+              ? { ...item, quantity: item.quantity + qty }
+              : item
+          )
+        );
+      } else {
+        setCartItems([...cartItems, { ...product, quantity: qty }]);
+      }
     }
   };
+
+  const handleRemoveFromCart = (productId) => {
+    setCartItems(cartItems.filter((item) => item.id !== productId));
+  };
+
+  const handleUpdateQuantity = (productId, newQuantity) => {
+    if (newQuantity <= 0) {
+      handleRemoveFromCart(productId);
+    } else {
+      setCartItems(
+        cartItems.map((item) =>
+          item.id === productId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    }
+  };
+
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
     <div
@@ -82,9 +115,10 @@ function App() {
               borderRadius: "8px",
             }}
           >
-            Carrinho: {cartCount}
+            🛒 {totalItems} {totalItems !== 1 ? "item" : "itens"}
           </span>
           <button
+            onClick={() => setShowCart(!showCart)}
             style={{
               padding: "0.8rem 1.5rem",
               fontSize: "1rem",
@@ -109,10 +143,286 @@ function App() {
               e.target.style.boxShadow = "0 4px 15px rgba(102, 126, 234, 0.4)";
             }}
           >
-            🛒 Ver Carrinho
+            {showCart ? "✕ Fechar" : "🛍️ Ver Carrinho"}
           </button>
         </div>
       </header>
+
+      {/* Modal do Carrinho */}
+      {showCart && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "flex-end",
+            zIndex: 999,
+          }}
+          onClick={() => setShowCart(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              width: "100%",
+              maxWidth: "400px",
+              height: "100%",
+              overflow: "auto",
+              boxShadow: "-4px 0 20px rgba(0, 0, 0, 0.2)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header do Carrinho */}
+            <div
+              style={{
+                padding: "1.5rem",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "#fff",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2 style={{ margin: 0, fontSize: "1.5rem" }}>🛒 Carrinho</h2>
+              <button
+                onClick={() => setShowCart(false)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.2)",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: "1.5rem",
+                  cursor: "pointer",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Conteúdo do Carrinho */}
+            <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto" }}>
+              {cartItems.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    color: "#999",
+                    padding: "2rem",
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  Carrinho vazio 😔
+                </div>
+              ) : (
+                cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      marginBottom: "1.5rem",
+                      padding: "1rem",
+                      background: "#f5f5f5",
+                      borderRadius: "8px",
+                      borderLeft: "4px solid #667eea",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "start",
+                        marginBottom: "0.75rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.75rem",
+                          flex: 1,
+                        }}
+                      >
+                        <span style={{ fontSize: "2rem" }}>{item.image}</span>
+                        <div>
+                          <h4 style={{ margin: "0 0 0.25rem 0", color: "#333" }}>
+                            {item.name}
+                          </h4>
+                          <p
+                            style={{
+                              margin: 0,
+                              color: "#999",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            R$ {item.price.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveFromCart(item.id)}
+                        style={{
+                          background: "#ff4757",
+                          border: "none",
+                          color: "#fff",
+                          borderRadius: "50%",
+                          width: "28px",
+                          height: "28px",
+                          cursor: "pointer",
+                          fontSize: "1rem",
+                          fontWeight: "bold",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = "#ff3838";
+                          e.target.style.transform = "scale(1.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = "#ff4757";
+                          e.target.style.transform = "scale(1)";
+                        }}
+                        title="Remover do carrinho"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Controle de Quantidade */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginBottom: "0.75rem",
+                      }}
+                    >
+                      <button
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity - 1)
+                        }
+                        style={{
+                          background: "#e0e0e0",
+                          border: "none",
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.9rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleUpdateQuantity(
+                            item.id,
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        style={{
+                          width: "50px",
+                          padding: "0.25rem",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                          textAlign: "center",
+                          fontSize: "0.9rem",
+                        }}
+                      />
+                      <button
+                        onClick={() =>
+                          handleUpdateQuantity(item.id, item.quantity + 1)
+                        }
+                        style={{
+                          background: "#e0e0e0",
+                          border: "none",
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.9rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        +
+                      </button>
+                      <span
+                        style={{
+                          marginLeft: "auto",
+                          fontWeight: "bold",
+                          color: "#764ba2",
+                        }}
+                      >
+                        R$ {(item.price * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer do Carrinho */}
+            {cartItems.length > 0 && (
+              <div
+                style={{
+                  padding: "1.5rem",
+                  borderTop: "2px solid #eee",
+                  background: "#f9f9f9",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "1rem",
+                    fontSize: "1.1rem",
+                    fontWeight: "bold",
+                    color: "#333",
+                  }}
+                >
+                  <span>Total:</span>
+                  <span style={{ color: "#764ba2" }}>
+                    R$ {totalPrice.toFixed(2)}
+                  </span>
+                </div>
+                <button
+                  style={{
+                    width: "100%",
+                    padding: "0.8rem",
+                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "1rem",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 20px rgba(102, 126, 234, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  💳 Finalizar Compra
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Conteúdo principal - Grid de Produtos */}
       <div
@@ -264,6 +574,7 @@ function App() {
                   onClick={() => {
                     const input = document.getElementById(`qty-${product.id}`);
                     handleAddToCart(product.id, input.value);
+                    input.value = 1;
                   }}
                   style={{
                     width: "100%",
